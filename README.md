@@ -8,7 +8,7 @@
 
 Compare the time required for an equivalent amount of work to be completed between different Proof-of-Work blockchains.
 
-[![](/screenshot.png)](https://howmanyconfs.com)
+[![](public/screenshot.png)](https://howmanyconfs.com)
 
 ## How are these values calculated?
 
