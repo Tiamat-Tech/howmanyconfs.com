@@ -4,6 +4,7 @@ export default function Document() {
 	return (
 		<Html>
 			<Head>
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<link rel="shortcut icon" href="/arm.png" />
 				<meta charSet="utf-8" />
 				<meta name="description" content="How many confirmations are equivalent to 6 Bitcoin confirmations?" />

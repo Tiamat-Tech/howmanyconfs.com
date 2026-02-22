@@ -99,9 +99,8 @@ export default function Home({ initialCoins, symbolToSlug, coinNames, version })
 									<td>
 										<a data-sort="marketCap" {...(sortBy === 'marketCap' ? {'data-sort-active': ''} : {})} onClick={() => handleSort('marketCap')}>Market Cap</a>
 									</td>
-									<td>
-										<a data-sort="multiplier" {...(sortBy === 'multiplier' ? {'data-sort-active': ''} : {})} onClick={() => handleSort('multiplier')}>Proof-of-Work</a>
-									</td>
+									<td>Hashrate</td>
+									<td>Power</td>
 									<td>
 										<a data-sort="confirmations" {...(sortBy === 'confirmations' ? {'data-sort-active': ''} : {})} onClick={() => handleSort('confirmations')}>Equivalent Confs</a>
 									</td>
@@ -120,11 +119,12 @@ export default function Home({ initialCoins, symbolToSlug, coinNames, version })
 											<img src={`/crypto-icons/${symbolToSlug[coin.symbol]}.png`} alt={coin.symbol} />
 											{coinNames[coin.symbol] || coin.name} <span className="ticker">{coin.symbol}</span>
 										</td>
-										<td>{formatDollars(coin.marketCap) || 'Unknown'}</td>
-										<td>{`${coin.algorithm} @ ${formatUnits(coin.hashrate, 'H/s')}`} = {formatUnits(coin.watts, 'W')}</td>
-										<td>{coin.confirmations.toLocaleString()} confs</td>
-										<td>{formatSeconds(coin.timeForConfs)}</td>
-										<td>{coin.symbol === 'BTC' ? '-' : `${Math.round(coin.multiplier).toLocaleString()}x slower`}</td>
+										<td data-label="Market Cap">{formatDollars(coin.marketCap) || 'Unknown'}</td>
+										<td data-label="Hashrate">{coin.algorithm} @ {formatUnits(coin.hashrate, 'H/s')}</td>
+										<td data-label="Power">{formatUnits(coin.watts, 'W')}</td>
+										<td data-label="Equivalent Confs">{coin.confirmations.toLocaleString()} confs</td>
+										<td data-label="Estimated Time">{formatSeconds(coin.timeForConfs)}</td>
+										<td data-label="Difference">{coin.symbol === 'BTC' ? '-' : `${Math.round(coin.multiplier).toLocaleString()}x slower`}</td>
 									</tr>
 								))}
 							</tbody>

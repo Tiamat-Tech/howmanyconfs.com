@@ -1,4 +1,4 @@
-const formatUnits = (originalValue, singleUnit) => ['', 'K', 'M', 'G', 'T', 'P'].reduce((previous, unit, exponent) => {
+const formatUnits = (originalValue, singleUnit) => ['', 'K', 'M', 'G', 'T', 'P', 'E'].reduce((previous, unit, exponent) => {
 	const devisor = (1000 ** exponent);
 	if (originalValue > devisor) {
 		let value = originalValue / devisor;
