@@ -87,6 +87,7 @@ export default function Home({ initialCoins, symbolToSlug, coinNames, version })
 						<img className="arm" src="/arm.png" />
 					</div>
 					<h1>How many confirmations are equivalent<sup><a rel="noopener noreferrer" target="_blank" href="//github.com/lukechilds/howmanyconfs.com/blob/master/README.md#how-are-these-values-calculated">*</a></sup> to 6 Bitcoin confirmations?</h1>
+					<p className="description">Compares Proof-of-Work across blockchains by converting hashrates into power consumption (watts), then calculating how many confirmations on each chain equal the same amount of work as 6 Bitcoin confirmations.</p>
 				</div>
 			</header>
 			<section className="wrapper">

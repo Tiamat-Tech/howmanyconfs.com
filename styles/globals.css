@@ -36,6 +36,17 @@ header h1 {
   margin: 10px 0 0;
 }
 
+header .description {
+  margin: 14px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid #F7931A;
+  font-size: 0.85em;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: #888;
+  max-width: 640px;
+}
+
 table.results {
   width: 100%;
   border-spacing: 0;
