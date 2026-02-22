@@ -99,6 +99,11 @@ table.results[data-sort-order="desc"] thead [data-sort-active]:after {
   border-top-color: #333;
 }
 
+.ticker {
+  color: #999;
+  margin-left: 0.3em;
+}
+
 .footer {
   margin-top: 2em;
   padding: 1em 0;

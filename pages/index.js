@@ -118,7 +118,7 @@ export default function Home({ initialCoins, symbolToSlug, coinNames, version })
 									<tr key={coin.symbol}>
 										<td>
 											<img src={`/crypto-icons/${symbolToSlug[coin.symbol]}.png`} alt={coin.symbol} />
-											{`${coinNames[coin.symbol] || coin.name} (${coin.symbol})`}
+											{coinNames[coin.symbol] || coin.name} <span className="ticker">{coin.symbol}</span>
 										</td>
 										<td>{formatDollars(coin.marketCap) || 'Unknown'}</td>
 										<td>{`${coin.algorithm} @ ${formatUnits(coin.hashrate, 'H/s')}`} = {formatUnits(coin.watts, 'W')}</td>
