@@ -3,21 +3,26 @@ import fs from 'fs';
 import path from 'path';
 import Head from 'next/head';
 import { getData } from '../lib/data.js';
+import { getCoinList } from '../lib/coingecko.js';
 import coinBlackList from '../js/coin-blacklist';
 import formatDollars from '../js/format-dollars';
 import formatSeconds from '../js/format-seconds';
 import formatUnits from '../js/format-units';
-import getCoinName from '../js/get-coin-name';
 import packageJson from '../package.json';
 
 const BITCOIN_CONFIRMATIONS = 6;
 
-function processCoins(rawCoins, availableIcons) {
+function processCoins(rawCoins, symbolToSlug) {
 	const bitcoin = rawCoins.find(coin => coin.symbol === 'BTC');
 	if (!bitcoin) return [];
 
+	const seen = new Set();
 	return rawCoins
-		.filter(coin => availableIcons.includes(coin.symbol.toLowerCase()) && !coinBlackList.includes(coin.symbol))
+		.filter(coin => {
+			if (seen.has(coin.symbol)) return false;
+			seen.add(coin.symbol);
+			return symbolToSlug[coin.symbol] && !coinBlackList.includes(coin.symbol);
+		})
 		.map(coin => {
 			const multiplier = (bitcoin.watts / coin.watts);
 			const workTime = (bitcoin.blockTimeInSeconds * BITCOIN_CONFIRMATIONS * multiplier);
@@ -43,7 +48,7 @@ function sortCoins(coins, sortBy, sortOrder) {
 	});
 }
 
-export default function Home({ initialCoins, availableIcons, version }) {
+export default function Home({ initialCoins, symbolToSlug, coinNames, version }) {
 	const [coins, setCoins] = useState(initialCoins);
 	const [sortBy, setSortBy] = useState('marketCap');
 	const [sortOrder, setSortOrder] = useState('asc');
@@ -52,7 +57,7 @@ export default function Home({ initialCoins, availableIcons, version }) {
 		fetch('/api/data')
 			.then(response => response.json())
 			.then(rawCoins => {
-				const processed = processCoins(rawCoins, availableIcons);
+				const processed = processCoins(rawCoins, symbolToSlug);
 				setCoins(sortCoins(processed, sortBy, sortOrder));
 			})
 			.catch(() => {});
@@ -78,7 +83,7 @@ export default function Home({ initialCoins, availableIcons, version }) {
 			<header className="header">
 				<div className="wrapper">
 					<div className="icons">
-						<img className="bitcoin-logo" src="/crypto-icons/btc.svg" alt="btc" />
+						<img className="bitcoin-logo" src="/crypto-icons/bitcoin.png" alt="btc" />
 						<img className="arm" src="/arm.png" />
 					</div>
 					<h1>How many confirmations are equivalent<sup><a rel="noopener noreferrer" target="_blank" href="//github.com/lukechilds/howmanyconfs.com/blob/master/README.md#how-are-these-values-calculated">*</a></sup> to 6 Bitcoin confirmations?</h1>
@@ -112,8 +117,8 @@ export default function Home({ initialCoins, availableIcons, version }) {
 								{sortedCoins.map(coin => (
 									<tr key={coin.symbol}>
 										<td>
-											<img src={`/crypto-icons/${coin.symbol.toLowerCase()}.svg`} alt={coin.symbol} />
-											{`${getCoinName(coin)} (${coin.symbol})`}
+											<img src={`/crypto-icons/${symbolToSlug[coin.symbol]}.png`} alt={coin.symbol} />
+											{`${coinNames[coin.symbol] || coin.name} (${coin.symbol})`}
 										</td>
 										<td>{formatDollars(coin.marketCap) || 'Unknown'}</td>
 										<td>{`${coin.algorithm} @ ${formatUnits(coin.hashrate, 'H/s')}`} = {formatUnits(coin.watts, 'W')}</td>
@@ -144,25 +149,73 @@ export default function Home({ initialCoins, availableIcons, version }) {
 }
 
 export async function getStaticProps() {
-	const rawCoins = await getData();
+	const [rawCoins, geckoCoins] = await Promise.all([
+		getData(),
+		getCoinList()
+	]);
 
-	const iconsDir = path.join(process.cwd(), 'public', 'crypto-icons');
-	let availableIcons = [];
+	// Load symbol→slug mapping from crypto-icons-plus
+	const mapPath = path.join(process.cwd(), 'node_modules', 'crypto-icons-plus', 'map.min.json');
+	let symbolSlugMap = {};
 	try {
-		availableIcons = fs.readdirSync(iconsDir)
-			.filter(f => f.endsWith('.svg'))
-			.map(f => f.replace('.svg', ''));
+		symbolSlugMap = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+	} catch {
+		// map file may not exist
+	}
+
+	// Read available icon filenames from disk
+	const iconsDir = path.join(process.cwd(), 'public', 'crypto-icons');
+	let availableIconSlugs = new Set();
+	try {
+		const files = fs.readdirSync(iconsDir).filter(f => f.endsWith('.png'));
+		for (const f of files) {
+			availableIconSlugs.add(f.replace('.png', ''));
+		}
 	} catch {
 		// Icons dir may not exist yet
 	}
 
-	const coins = processCoins(rawCoins, availableIcons);
+	// Build symbolToSlug: for each WhatToMine symbol, find a slug with an icon on disk
+	const symbolToSlug = {};
+	for (const coin of rawCoins) {
+		const sym = coin.symbol.toUpperCase();
+		const slugs = symbolSlugMap[sym];
+		if (slugs) {
+			const match = slugs.find(slug => availableIconSlugs.has(slug));
+			if (match) {
+				symbolToSlug[sym] = match;
+			}
+		}
+	}
+
+	// Build coinNames: look up by slug (which is a CoinGecko ID) for accurate names
+	const geckoById = {};
+	for (const entry of geckoCoins) {
+		geckoById[entry.id] = entry.name;
+	}
+	const coinNames = {};
+	for (const [sym, slug] of Object.entries(symbolToSlug)) {
+		if (geckoById[slug]) {
+			coinNames[sym] = geckoById[slug];
+		}
+	}
+
+	// Deduplicate rawCoins by symbol (keep first = highest market cap)
+	const seen = new Set();
+	const dedupedCoins = rawCoins.filter(coin => {
+		if (seen.has(coin.symbol)) return false;
+		seen.add(coin.symbol);
+		return true;
+	});
+
+	const coins = processCoins(dedupedCoins, symbolToSlug);
 	const sorted = sortCoins(coins, 'marketCap', 'asc');
 
 	return {
 		props: {
 			initialCoins: sorted,
-			availableIcons,
+			symbolToSlug,
+			coinNames,
 			version: packageJson.version
 		}
 	};

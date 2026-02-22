@@ -14,5 +14,14 @@ export default [
 	'ZEN', // Delayed block submission penalty
 	'KMD', // DPoW
 	'HUSH', // DPoW
-	'ARRR' // DPoW
+	'ARRR', // DPoW
+	'XEC', // PoW + Avalanche post-consensus
+	'FB', // Merge mining (cadence mining)
+	'QUAI', // Multi-chain merged mining + PoEM consensus
+	'EPIC', // Multi-algo PoW
+	'OCTA', // Delayed block submission penalty (PirlGuard)
+	'XDAG', // DAG-based consensus
+	'DINGO', // Merge mining (AuxPoW)
+	'CAT', // Merge mining (AuxPoW)
+	'QKC' // PoW/PoS hybrid + sharded multi-chain
 ];
